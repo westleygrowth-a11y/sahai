@@ -5,6 +5,8 @@ import type { User, Task, AutomationPolicy } from "@prisma/client";
 import { reportIds, canAssign, canSeeTask, assertNoReportingCycle } from "../src/lib/permissions";
 import { withinWorkingHours } from "../src/lib/automation";
 import { localParts, startOfWeek } from "../src/lib/time";
+import { appOrigin } from "../src/lib/environment";
+import { validateDatabase } from "../scripts/start-server.mjs";
 const person = (overrides: Partial<User> = {}) => ({ id: randomUUID(), institutionId: "sah", active: true, role: "EMPLOYEE", canDelegate: false, canCrossDepartment: false, canAccessHr: false, canAccessFinance: false, managerId: null, ...overrides } as User);
 test("nested reporting and explicit delegation grant; CEO bypass never changes reporting", () => {
   const ceo = person({ role: "CEO" });
@@ -50,4 +52,16 @@ test("Karachi working windows, Friday boundaries, holidays and weekends", () => 
   assert(!withinWorkingHours(new Date("2026-10-16T06:00:00Z"),{ ...policy, holidays: ["2026-10-16"] }));
   assert.equal(localParts(new Date("2026-10-15T20:00:00Z")).day,"2026-10-16");
   assert.equal(startOfWeek(new Date("2026-10-18T10:00:00Z")).toISOString(),"2026-10-11T19:00:00.000Z");
+});
+test("Railway origin comes from configured platform metadata, with explicit URL override", () => {
+  assert.equal(appOrigin({ RAILWAY_PUBLIC_DOMAIN: "sahai-production-2981.up.railway.app" }),"https://sahai-production-2981.up.railway.app");
+  assert.equal(appOrigin({ APP_URL: "https://ops.example.com/", RAILWAY_PUBLIC_DOMAIN: "other.example.com" }),"https://ops.example.com");
+  assert.equal(appOrigin({ APP_URL: "not a url" }),undefined);
+  assert.equal(appOrigin({}),undefined);
+});
+test("deployment startup fails clearly without a Railway database reference", () => {
+  assert.throws(() => validateDatabase({}),/DATABASE_URL is missing/);
+  assert.throws(() => validateDatabase({ DATABASE_URL: "https://example.com" }),/PostgreSQL/);
+  assert.throws(() => validateDatabase({ DATABASE_URL: "postgresql://user:unused@localhost:5432/db", RAILWAY_PROJECT_ID: "test" }),/local development/);
+  assert.doesNotThrow(() => validateDatabase({ DATABASE_URL: "postgresql://user:unused@postgres.railway.internal:5432/railway", RAILWAY_PROJECT_ID: "test" }));
 });

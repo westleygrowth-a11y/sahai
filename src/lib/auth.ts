@@ -3,6 +3,7 @@ import { promisify } from "node:util";
 import { cookies } from "next/headers";
 import { db } from "./db";
 import { requireThat } from "./errors";
+import { appOrigin } from "./environment";
 const scrypt = promisify(scryptCallback);
 export const SESSION_COOKIE = "sah_session";
 export const SESSION_SECONDS = 8 * 60 * 60;
@@ -40,7 +41,7 @@ export async function requireUser() {
 }
 export function sessionOptions() {
   return { httpOnly: true, sameSite: "lax" as const, secure: process.env.SESSION_COOKIE_SECURE === "true" ||
-    (process.env.SESSION_COOKIE_SECURE !== "false" && process.env.APP_URL?.startsWith("https://") === true), path: "/", maxAge: SESSION_SECONDS };
+    (process.env.SESSION_COOKIE_SECURE !== "false" && appOrigin()?.startsWith("https://") === true), path: "/", maxAge: SESSION_SECONDS };
 }
 export async function rateLimit(key: string, limit = 10) {
   const now = new Date();

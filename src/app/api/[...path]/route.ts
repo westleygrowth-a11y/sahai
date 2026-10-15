@@ -11,6 +11,7 @@ import { actOnTask, createTask } from "@/lib/tasks";
 import { briefing, runFollowUps, savePolicy } from "@/lib/automation";
 import { canSeeTask } from "@/lib/permissions";
 import { evidenceDir, uploadEvidence } from "@/lib/evidence";
+import { appOrigin } from "@/lib/environment";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const credentials = z.object({ email: z.email().max(254).transform(s => s.toLowerCase()), password: z.string().min(1).max(128) });
@@ -38,8 +39,9 @@ type Context = { params: Promise<{ path: string[] }> };
 async function handle(req: NextRequest, context: Context) {
   try {
     if (req.method !== "GET") {
-      requireThat(process.env.APP_URL, 503, "APP_URL must be configured.");
-      requireThat(req.headers.get("origin") === new URL(process.env.APP_URL).origin, 403, "Request origin is not allowed.");
+      const origin = appOrigin();
+      requireThat(origin, 503, "Configure APP_URL or generate a Railway public domain.");
+      requireThat(req.headers.get("origin") === origin, 403, "Request origin is not allowed.");
       requireThat(req.headers.get("sec-fetch-site") !== "cross-site", 403, "Cross-site mutation is not allowed.");
     }
     const { path } = await context.params;

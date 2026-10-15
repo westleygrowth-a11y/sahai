@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0",
     "build": "prisma generate && next build",
-    "start": "next start --hostname 0.0.0.0",
+    "start": "node --env-file-if-exists=.env scripts/start-server.mjs",
     "typecheck": "tsc --noEmit",
     "test": "node --env-file=.env scripts/test.mjs",
     "db:generate": "prisma generate",
@@ -16,7 +16,7 @@
     "db:seed": "tsx --env-file=.env prisma/seed.ts",
     "db:snapshot": "node --env-file=.env scripts/database-snapshot.mjs save",
     "db:restore": "node --env-file=.env scripts/database-snapshot.mjs restore",
-    "worker": "tsx --env-file=.env scripts/worker.ts",
+    "worker": "tsx --env-file-if-exists=.env scripts/worker.ts",
     "setup:local": "node scripts/setup-local.mjs",
     "test:browser": "tsx --env-file=.env scripts/browser-check.ts"
   },
@@ -33,10 +33,12 @@
     "next": "16.4.1",
     "pg": "8.23.1",
     "pg-boss": "12.38.0",
+    "prisma": "6.19.3",
     "radix-ui": "1.8.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "tailwind-merge": "3.7.0",
+    "tsx": "4.23.15",
     "zod": "4.6.7"
   },
   "devDependencies": {
@@ -47,9 +49,7 @@
     "@types/pg": "8.23.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "prisma": "6.19.3",
     "tailwindcss": "4.3.3",
-    "tsx": "4.23.15",
     "typescript": "7.0.2"
   },
   "type": "module",

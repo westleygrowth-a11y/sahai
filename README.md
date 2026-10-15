@@ -85,3 +85,5 @@ Before real staff use, provide a managed database, TLS and cookie configuration,
 Prisma runs with its supported JavaScript driver adapter. Required engine/artifact verification remains enabled. `deepmerge-ts` is overridden to the patched 8.0.2 release to address the recursive-merge advisory in Prisma's tooling dependency; generation, migrations, tests, and build were checked with this override.
 
 See [architecture and permissions](docs/ARCHITECTURE.md), [master requirements](docs/MASTER_PROMPT.md), [development instructions](AGENTS.md), and [skill inventory](SKILLS.md).
+
+For hosted setup, see [Railway deployment](docs/RAILWAY.md). The web service requires a separate Railway PostgreSQL service and a `DATABASE_URL` reference; migrations now run automatically at production startup.

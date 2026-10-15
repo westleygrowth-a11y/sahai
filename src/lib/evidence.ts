@@ -6,7 +6,7 @@ import { transaction } from "./db";
 import { canSeeTask, canManageTask } from "./permissions";
 import { activity, closedStatuses } from "./tasks";
 import { requireThat } from "./errors";
-export const evidenceDir = () => join(process.cwd(), ".local", "evidence");
+export const evidenceDir = () => process.env.EVIDENCE_DIR || (process.env.RAILWAY_VOLUME_MOUNT_PATH ? join(process.env.RAILWAY_VOLUME_MOUNT_PATH, "evidence") : join(process.cwd(), ".local", "evidence"));
 export async function uploadEvidence(actor: User, taskId: string, file: File) {
   requireThat(file.size > 0 && file.size <= 2 * 1024 * 1024, 400, "Evidence must be between 1 byte and 2 MB.");
   requireThat(["application/pdf", "image/png", "image/jpeg", "text/plain"].includes(file.type), 400, "Use a PDF, PNG, JPEG, or plain-text file.");
