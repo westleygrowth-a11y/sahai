@@ -1,0 +1,4 @@
+interface:
+  display_name: "SAH AI Automation"
+  short_description: "Design controlled SAH agents and automation flows"
+  default_prompt: "Use $sah-ai-automation to review the relevant SAH AI Operations Manager requirements and workflow."

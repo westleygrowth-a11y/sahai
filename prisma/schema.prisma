@@ -1,0 +1,245 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "client"
+}
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+enum Role {
+  CEO
+  FINANCE_DIRECTOR
+  OPERATIONS_DIRECTOR
+  DEPARTMENT_HEAD
+  SUPERVISOR
+  EMPLOYEE
+  SYSTEM_ADMIN
+}
+enum TaskStatus {
+  DRAFT
+  ASSIGNED
+  ACKNOWLEDGED
+  IN_PROGRESS
+  BLOCKED
+  SUBMITTED_FOR_REVIEW
+  CHANGES_REQUESTED
+  COMPLETED
+  CANCELLED
+}
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+  CRITICAL
+}
+enum Sensitivity {
+  STANDARD
+  HR
+  FINANCE
+}
+model Institution {
+  id          String       @id @default(uuid())
+  name        String
+  demo        Boolean      @default(false)
+  timezone    String       @default("Asia/Karachi")
+  campuses    Campus[]
+  departments Department[]
+  users       User[]
+  tasks       Task[]
+  createdAt   DateTime     @default(now())
+}
+model Campus {
+  id            String      @id @default(uuid())
+  name          String
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id])
+  users         User[]
+  @@unique([institutionId, name])
+}
+model Department {
+  id            String       @id @default(uuid())
+  name          String
+  institutionId String
+  institution   Institution  @relation(fields: [institutionId], references: [id])
+  parentId      String?
+  parent        Department?  @relation("DepartmentTree", fields: [parentId], references: [id])
+  children      Department[] @relation("DepartmentTree")
+  users         User[]
+  tasks         Task[]
+  @@unique([institutionId, name])
+  @@index([parentId])
+}
+model User {
+  id                 String      @id @default(uuid())
+  email              String      @unique
+  name               String
+  title              String
+  passwordHash       String
+  role               Role        @default(EMPLOYEE)
+  active             Boolean     @default(true)
+  canDelegate        Boolean     @default(false)
+  canCrossDepartment Boolean     @default(false)
+  canAccessHr        Boolean     @default(false)
+  canAccessFinance   Boolean     @default(false)
+  institutionId      String
+  institution        Institution @relation(fields: [institutionId], references: [id])
+  campusId           String?
+  campus             Campus?     @relation(fields: [campusId], references: [id])
+  departmentId       String?
+  department         Department? @relation(fields: [departmentId], references: [id])
+  managerId          String?
+  manager            User?       @relation("Reporting", fields: [managerId], references: [id])
+  reports            User[]      @relation("Reporting")
+  sessions           Session[]
+  notifications      Notification[]
+  createdAt          DateTime    @default(now())
+  @@index([managerId])
+  @@index([institutionId, departmentId])
+}
+model Session {
+  id        String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([expiresAt])
+}
+model LoginAttempt {
+  key       String   @id
+  count     Int      @default(1)
+  expiresAt DateTime
+}
+model Task {
+  id                  String       @id @default(uuid())
+  title               String
+  instructions        String
+  parentId            String?
+  parent              Task?        @relation("TaskTree", fields: [parentId], references: [id])
+  children            Task[]       @relation("TaskTree")
+  rootId              String
+  root                Task         @relation("TaskRoot", fields: [rootId], references: [id])
+  descendants         Task[]       @relation("TaskRoot")
+  originatingAssignerId String
+  createdById         String
+  accountableOwnerId  String
+  executorId          String
+  reportingManagerId  String?
+  institutionId       String
+  institution         Institution  @relation(fields: [institutionId], references: [id])
+  departmentId        String?
+  department          Department?  @relation(fields: [departmentId], references: [id])
+  priority            Priority     @default(NORMAL)
+  status              TaskStatus   @default(ASSIGNED)
+  sensitivity         Sensitivity  @default(STANDARD)
+  dueAt               DateTime
+  requiredEvidence    String       @default("")
+  approvalRequired    Boolean      @default(true)
+  mandatory           Boolean      @default(true)
+  version             Int          @default(0)
+  publishedAt         DateTime?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  activities          Activity[]
+  attachments         Attachment[]
+  approvals           Approval[]
+  extensionRequests   DeadlineRequest[]
+  escalations         Escalation[]
+  @@index([parentId])
+  @@index([rootId])
+  @@index([institutionId, status, dueAt])
+  @@index([executorId])
+  @@index([accountableOwnerId])
+  @@index([originatingAssignerId])
+}
+model Activity {
+  id        String   @id @default(uuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id])
+  actorId   String
+  type      String
+  message   String
+  data      Json     @default("{}")
+  createdAt DateTime @default(now())
+  @@index([taskId, createdAt])
+}
+model Attachment {
+  id           String   @id @default(uuid())
+  taskId       String
+  task         Task     @relation(fields: [taskId], references: [id])
+  uploadedById String
+  name         String
+  mediaType    String
+  size         Int
+  storageKey   String   @unique
+  createdAt    DateTime @default(now())
+  @@index([taskId])
+}
+model Approval {
+  id         String   @id @default(uuid())
+  taskId     String
+  task       Task     @relation(fields: [taskId], references: [id])
+  reviewerId String
+  decision   String
+  note       String
+  createdAt  DateTime @default(now())
+  @@index([taskId])
+}
+model DeadlineRequest {
+  id          String   @id @default(uuid())
+  taskId      String
+  task        Task     @relation(fields: [taskId], references: [id])
+  requesterId String
+  requestedAt DateTime
+  reason      String
+  status      String   @default("PENDING")
+  reviewerId  String?
+  createdAt   DateTime @default(now())
+  @@index([taskId, status])
+}
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  taskId    String?
+  message   String
+  simulated Boolean  @default(false)
+  dedupeKey String?  @unique
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+  @@index([userId, createdAt])
+}
+model Escalation {
+  id        String   @id @default(uuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id])
+  toUserId  String
+  level     Int
+  day       String
+  simulated Boolean  @default(true)
+  createdAt DateTime @default(now())
+  @@unique([taskId, level, day])
+}
+model AutomationPolicy {
+  id                 String @id @default("default")
+  timezone           String @default("Asia/Karachi")
+  workingDays        Int[]  @default([1, 2, 3, 4, 5])
+  startHour          Int    @default(9)
+  endHour            Int    @default(17)
+  reminderLimit      Int    @default(1)
+  escalationHours    Int    @default(24)
+  holidays           String[] @default([])
+}
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String
+  action    String
+  entityId  String
+  data      Json     @default("{}")
+  createdAt DateTime @default(now())
+  @@index([entityId, createdAt])
+}
+model Bootstrap {
+  id        String   @id @default("initial-ceo")
+  userId    String
+  createdAt DateTime @default(now())
+}

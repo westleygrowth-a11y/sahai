@@ -1,0 +1,4 @@
+interface:
+  display_name: "SAH Maintenance"
+  short_description: "Maintain SAH reliability, migrations and diagnostics"
+  default_prompt: "Use $sah-maintenance to review the relevant SAH AI Operations Manager requirements and workflow."

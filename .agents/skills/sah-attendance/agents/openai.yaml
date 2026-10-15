@@ -1,0 +1,4 @@
+interface:
+  display_name: "SAH Attendance"
+  short_description: "Specify SAH attendance rules and correction flows"
+  default_prompt: "Use $sah-attendance to review the relevant SAH AI Operations Manager requirements and workflow."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "SAH Hierarchy"
+  short_description: "Model SAH roles, reporting lines and permissions"
+  default_prompt: "Use $sah-hierarchy to review the relevant SAH AI Operations Manager requirements and workflow."

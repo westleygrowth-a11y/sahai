@@ -1,0 +1,4 @@
+interface:
+  display_name: "SAH Task Engine"
+  short_description: "Specify SAH task transitions, ownership and deadlines"
+  default_prompt: "Use $sah-task-engine to review the relevant SAH AI Operations Manager requirements and workflow."
