@@ -87,3 +87,7 @@ Prisma runs with its supported JavaScript driver adapter. Required engine/artifa
 See [architecture and permissions](docs/ARCHITECTURE.md), [master requirements](docs/MASTER_PROMPT.md), [development instructions](AGENTS.md), and [skill inventory](SKILLS.md).
 
 For hosted setup, see [Railway deployment](docs/RAILWAY.md). The web service requires a separate Railway PostgreSQL service and a `DATABASE_URL` reference; migrations now run automatically at production startup.
+
+## Team user guide
+
+Open `/guide.html` on the deployed application for the interactive CEO, director, department-manager, and employee guide. The guide includes expandable walkthroughs, temporary daily checklists, practice questions, and a shared reference. It does not modify workspace data. Source: [public/guide.html](public/guide.html).
